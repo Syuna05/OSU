@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>題名チベスナ用押井ガチャ</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f0f0f0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    button {
+      font-size: 18px;
+      padding: 10px 20px;
+      color: white;
+      background-color: #007BFF;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .result {
+      font-size: 20px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .count {
+      font-size: 16px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>押井ガチャ</h1>
+    <p>押井ボタンを押せ！</p>
+    <button id="gachaButton">押井ガチャを回す</button>
+    <div class="result" id="result"></div>
+    <div class="count" id="count">回した回数: 0</div>
+  </div>
+
+  <script>
+    // ローカルストレージからカウントを取得
+    const countKey = 'gachaCount';
+    let count = localStorage.getItem(countKey);
+    count = count ? parseInt(count, 10) : 0;
+
+    // 初期カウントを表示
+    document.getElementById('count').textContent = `回した回数: ${count}`;
+
+    document.getElementById('gachaButton').addEventListener('click', function() {
+      const randomNumber = Math.random(); // 0から1までの乱数を生成
+      const resultElement = document.getElementById('result');
+
+      // 結果の判定
+      if (randomNumber < 0.995) {
+        resultElement.textContent = 'おめでとう！固定誕生！';
+        resultElement.style.color = 'green';
+      } else {
+        resultElement.textContent = '固定解散！';
+        resultElement.style.color = 'red';
+      }
+
+      // カウントを増加させ、ローカルストレージに保存
+      count++;
+      localStorage.setItem(countKey, count);
+
+      // カウントを更新
+      document.getElementById('count').textContent = `あなたがこのガチャを回した回数: ${count}`;
+    });
+  </script>
+</body>
+</html>
