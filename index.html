@@ -1,90 +1,170 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>題名チベスナ用押井ガチャ</title>
+  <meta charset="UTF-8" />
+  <title>対戦勝敗記録ツール</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: sans-serif;
       text-align: center;
-      background-color: #f0f0f0;
+      background-color: #f2f2f2;
       padding: 20px;
     }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    input, button, select {
+      margin: 10px;
+      padding: 10px;
+      font-size: 16px;
     }
-    h1 {
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
-    button {
-      font-size: 18px;
-      padding: 10px 20px;
-      color: white;
-      background-color: #007BFF;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #0056b3;
+    .player {
+      display: inline-block;
+      margin: 20px;
     }
     .result {
       font-size: 20px;
       margin-top: 20px;
       font-weight: bold;
     }
-    .count {
-      font-size: 16px;
-      margin-top: 10px;
+    #history {
+      margin-top: 20px;
+      font-size: 18px;
+      white-space: pre-wrap;
+    }
+    #gameArea, #history, #result {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>押井ガチャ</h1>
-    <p>押井ボタンを押せ！</p>
-    <button id="gachaButton">押井ガチャを回す</button>
-    <div class="result" id="result"></div>
-    <div class="count" id="count">回した回数: 0</div>
+
+  <h2>1対1対戦</h2>
+
+  <div>
+    <label>プレイヤー1の名前: <input type="text" id="player1Name" /></label><br />
+    <label>プレイヤー2の名前: <input type="text" id="player2Name" /></label><br />
+
+    <label>
+      勝利条件:
+      <select id="modeSelect">
+        <option value="victory">○勝したら勝ち</option>
+        <option value="fixed">○回試合する</option>
+      </select>
+    </label>
+    <input type="number" id="matchCount" min="1" placeholder="回数を入力" />
+    <br />
+    <button onclick="startGame()">試合開始</button>
+    <button onclick="resetGame()">リセット</button>
   </div>
 
+  <div id="gameArea">
+    <p>現在の試合数: <span id="currentGame">0</span></p>
+
+    <div class="player" id="p1Area">
+      <h3 id="p1Label"></h3>
+      <p>勝利数: <span id="p1Wins">0</span></p>
+      <button onclick="recordWin('p1')" id="p1Btn">勝ち</button>
+    </div>
+
+    <div class="player" id="p2Area">
+      <h3 id="p2Label"></h3>
+      <p>勝利数: <span id="p2Wins">0</span></p>
+      <button onclick="recordWin('p2')" id="p2Btn">勝ち</button>
+    </div>
+  </div>
+
+  <div id="history">
+    <h3>試合履歴</h3>
+    <p id="matchHistory">なし</p>
+  </div>
+
+  <div class="result" id="result"></div>
+
   <script>
-    // ローカルストレージからカウントを取得
-    const countKey = 'gachaCount';
-    let count = localStorage.getItem(countKey);
-    count = count ? parseInt(count, 10) : 0;
+    let player1 = "", player2 = "";
+    let p1Wins = 0, p2Wins = 0, totalGames = 0;
+    let matchLimit = 0;
+    let mode = "victory";
+    let history = [];
 
-    // 初期カウントを表示
-    document.getElementById('count').textContent = `回した回数: ${count}`;
+    function startGame() {
+      player1 = document.getElementById("player1Name").value || "プレイヤー1";
+      player2 = document.getElementById("player2Name").value || "プレイヤー2";
+      matchLimit = parseInt(document.getElementById("matchCount").value);
+      mode = document.getElementById("modeSelect").value;
 
-    document.getElementById('gachaButton').addEventListener('click', function() {
-      const randomNumber = Math.random(); // 0から1までの乱数を生成
-      const resultElement = document.getElementById('result');
+      p1Wins = 0;
+      p2Wins = 0;
+      totalGames = 0;
+      history = [];
 
-      // 結果の判定
-      if (randomNumber < 0.995) {
-        resultElement.textContent = 'おめでとう！固定誕生！';
-        resultElement.style.color = 'green';
+      document.getElementById("p1Label").textContent = player1;
+      document.getElementById("p2Label").textContent = player2;
+      document.getElementById("p1Wins").textContent = "0";
+      document.getElementById("p2Wins").textContent = "0";
+      document.getElementById("currentGame").textContent = "0";
+      document.getElementById("matchHistory").textContent = "なし";
+      document.getElementById("result").textContent = "";
+
+      document.getElementById("gameArea").style.display = "block";
+      document.getElementById("history").style.display = "block";
+      document.getElementById("result").style.display = "block";
+      document.getElementById("p1Btn").disabled = false;
+      document.getElementById("p2Btn").disabled = false;
+    }
+
+    function recordWin(player) {
+      let roundResult = "";
+      if (player === "p1") {
+        p1Wins++;
+        roundResult = `${player1} 〇　${player2} ×`;
       } else {
-        resultElement.textContent = '固定解散！';
-        resultElement.style.color = 'red';
+        p2Wins++;
+        roundResult = `${player2} 〇　${player1} ×`;
       }
 
-      // カウントを増加させ、ローカルストレージに保存
-      count++;
-      localStorage.setItem(countKey, count);
+      totalGames++;
+      history.push(roundResult);
 
-      // カウントを更新
-      document.getElementById('count').textContent = `あなたがこのガチャを回した回数: ${count}`;
-    });
+      document.getElementById("p1Wins").textContent = p1Wins;
+      document.getElementById("p2Wins").textContent = p2Wins;
+      document.getElementById("currentGame").textContent = totalGames;
+      document.getElementById("matchHistory").textContent =
+        history.map((h, i) => `${i + 1}戦目: ${h}`).join("\n");
+
+      if (mode === "victory") {
+        if (p1Wins >= matchLimit) endGame(player1, player2);
+        else if (p2Wins >= matchLimit) endGame(player2, player1);
+      } else if (mode === "fixed") {
+        if (totalGames >= matchLimit) {
+          if (p1Wins > p2Wins) endGame(player1, player2);
+          else if (p2Wins > p1Wins) endGame(player2, player1);
+          else endDraw();
+        }
+      }
+    }
+
+    function endGame(winner, loser) {
+      document.getElementById("result").textContent = `${winner} 勝者 / ${loser} 負け犬`;
+      document.getElementById("p1Btn").disabled = true;
+      document.getElementById("p2Btn").disabled = true;
+    }
+
+    function endDraw() {
+      document.getElementById("result").textContent = "引き分けです";
+      document.getElementById("p1Btn").disabled = true;
+      document.getElementById("p2Btn").disabled = true;
+    }
+
+    function resetGame() {
+      document.getElementById("player1Name").value = "";
+      document.getElementById("player2Name").value = "";
+      document.getElementById("matchCount").value = "";
+      document.getElementById("gameArea").style.display = "none";
+      document.getElementById("history").style.display = "none";
+      document.getElementById("result").style.display = "none";
+      document.getElementById("matchHistory").textContent = "なし";
+      document.getElementById("result").textContent = "";
+    }
   </script>
+
 </body>
 </html>
