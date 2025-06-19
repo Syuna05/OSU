@@ -36,7 +36,7 @@
 </head>
 <body>
 
-  <h2>1対1対戦</h2>
+  <h2>1対1 勝敗記録ツール</h2>
 
   <div>
     <label>プレイヤー1の名前: <input type="text" id="player1Name" /></label><br />
@@ -84,6 +84,7 @@
     let matchLimit = 0;
     let mode = "victory";
     let history = [];
+    let oshiiConfirmed = false; // 押井チェック済みフラグ
 
     function startGame() {
       player1 = document.getElementById("player1Name").value || "プレイヤー1";
@@ -91,6 +92,35 @@
       matchLimit = parseInt(document.getElementById("matchCount").value);
       mode = document.getElementById("modeSelect").value;
 
+      if (player2 === "押井えり" && !oshiiConfirmed) {
+        const messages = [
+          "本当に押井と対戦しますか？",
+          "嫌な予感はしませんか？",
+          "勝てる見込みはありますか？",
+          "押井さんに勝てますか？"
+        ];
+
+        for (let msg of messages) {
+          const res = confirm(msg);
+          if (!res) {
+            alert("やはり無理でしたか…リセットします。");
+            resetGame();
+            return;
+          }
+        }
+
+        oshiiConfirmed = true;
+        alert("ならばゆけ");
+        setTimeout(() => {
+          proceedGameStart();
+        }, 3000);
+        return;
+      }
+
+      proceedGameStart();
+    }
+
+    function proceedGameStart() {
       p1Wins = 0;
       p2Wins = 0;
       totalGames = 0;
@@ -163,6 +193,7 @@
       document.getElementById("result").style.display = "none";
       document.getElementById("matchHistory").textContent = "なし";
       document.getElementById("result").textContent = "";
+      oshiiConfirmed = false; // ← 押井チェックもリセット
     }
   </script>
 
